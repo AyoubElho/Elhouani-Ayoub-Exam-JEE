@@ -1,0 +1,716 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit}
+
+\geometry{margin=2.2cm}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black
+}
+
+\definecolor{mainblue}{RGB}{30,78,121}
+\definecolor{lightblue}{RGB}{232,242,252}
+\definecolor{lightgray}{RGB}{246,246,246}
+\definecolor{darkgreen}{RGB}{30,115,70}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\question}[1]{\subsection*{#1}}
+\newcommand{\screenshot}[3]{
+\begin{figure}[H]
+    \centering
+    \IfFileExists{#1}{
+        \includegraphics[width=#2\textwidth]{#1}
+    }{
+        \fbox{
+            \begin{minipage}{0.86\textwidth}
+                \centering
+                \vspace{0.5cm}
+                Image à insérer : \code{#1}\\
+                \vspace{0.2cm}
+                Placer la capture dans le dossier \code{rapport-assets}.
+                \vspace{0.5cm}
+            \end{minipage}
+        }
+    }
+    \caption{#3}
+\end{figure}
+}
+
+\lstdefinestyle{codestyle}{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{lightgray},
+    keywordstyle=\color{mainblue}\bfseries,
+    commentstyle=\color{darkgreen},
+    stringstyle=\color{red!60!black},
+    showstringspaces=false,
+    columns=fullflexible
+}
+
+\lstset{style=codestyle}
+
+\title{
+    \textbf{Rapport du Contrôle Architecture Distribuée et Middleware}\\
+    \large Application Web JEE de Gestion de Location de Véhicules
+}
+\author{
+    ENSET Mohammedia -- Université Hassan II\\
+    Master SDIA -- Pr. YOUSSFI\\[0.3cm]
+    \textbf{Étudiant : Elhouani Ayoub}
+}
+\date{Année universitaire 2025--2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{center}
+    \vspace{0.5cm}
+    \begin{tabular}{|>{\bfseries}p{5cm}|p{9cm}|}
+        \hline
+        Projet & Gestion de location de véhicules dans des agences \\
+        \hline
+        Backend & Spring Boot, Spring MVC, Spring Data JPA, Hibernate, H2, Spring Security, JWT \\
+        \hline
+        Frontend & Angular, Bootstrap, HttpClient, Router, Guard, Interceptor JWT \\
+        \hline
+        Repository GitHub & \url{https://github.com/AyoubElho/Elhouani-Ayoub-Exam-JEE.git} \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+Ce rapport présente la conception et l'implémentation d'une application Web JEE permettant de gérer la location de véhicules dans des agences.
+L'application respecte une architecture en couches : une couche DAO basée sur Spring Data JPA et Hibernate, une couche service basée sur des interfaces et des implémentations, une couche Web exposée par des REST Controllers, ainsi qu'une application frontend développée avec Angular.
+
+Le système gère les agences, les véhicules disponibles à la location, les voitures, les motos, les locations et les utilisateurs de l'application.
+La sécurité est assurée par Spring Security avec Json Web Token (JWT), avec trois rôles : \code{ROLE\_CLIENT}, \code{ROLE\_EMPLOYE} et \code{ROLE\_ADMIN}.
+
+\section{A. Livrables}
+
+\question{1. Repository GitHub}
+
+Le projet a été déposé dans un repository GitHub nommé :
+
+\begin{center}
+    \code{Elhouani-Ayoub-Exam-JEE}
+\end{center}
+
+Lien du repository :
+
+\begin{center}
+    \url{https://github.com/AyoubElho/Elhouani-Ayoub-Exam-JEE.git}
+\end{center}
+
+\question{2. Dépôt du lien dans Classroom}
+
+Le lien du repository GitHub doit être déposé dans Classroom afin de permettre l'évaluation du code source :
+
+\begin{center}
+    \url{https://github.com/AyoubElho/Elhouani-Ayoub-Exam-JEE.git}
+\end{center}
+
+\question{3. Commits et push périodiques}
+
+Le développement du projet est organisé avec Git.
+Après chaque période de travail, les modifications importantes sont validées avec un commit puis envoyées vers le repository distant avec \code{git push}.
+Cette méthode permet de garder un historique clair de l'avancement du projet et de sécuriser le code source.
+
+\question{4. Rapport PDF}
+
+Ce document constitue le rapport demandé.
+Il est rédigé en LaTeX et peut être compilé en PDF avant le dépôt final sur Classroom.
+
+\section{B. Conception}
+
+\question{5. Architecture technique du projet}
+
+L'application est composée de deux parties principales :
+
+\begin{itemize}
+    \item un backend Spring Boot exposant une API REST sécurisée ;
+    \item un frontend Angular consommant cette API via HTTP.
+\end{itemize}
+
+Le backend est organisé selon une architecture en couches :
+
+\begin{itemize}
+    \item \textbf{Couche Web} : contient les contrôleurs REST \code{VehiculeRestController}, \code{AgenceRestController} et \code{AuthController}.
+    \item \textbf{Couche Service} : contient les interfaces \code{VehiculeService}, \code{AgenceService} et leurs implémentations.
+    \item \textbf{Couche DTO/Mapper} : permet de séparer les objets exposés par l'API des entités JPA.
+    \item \textbf{Couche DAO} : contient les repositories Spring Data JPA : \code{VehiculeRepository}, \code{AgenceRepository}, \code{LocationRepository}, \code{AppUserRepository}.
+    \item \textbf{Couche Persistance} : utilise JPA/Hibernate avec une base H2 en mémoire.
+    \item \textbf{Couche Sécurité} : utilise Spring Security, un filtre JWT et une configuration des autorisations par rôle.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={draw=mainblue, fill=lightblue, rounded corners, minimum width=4.2cm, minimum height=1cm, align=center},
+    db/.style={draw=darkgreen, fill=green!8, rounded corners, minimum width=4.2cm, minimum height=1cm, align=center},
+    arrow/.style={-{Latex[length=3mm]}, thick}
+]
+    \node[box] (angular) {Frontend Angular\\Pages, Services, Guard, Interceptor};
+    \node[box, below=0.9cm of angular] (api) {API REST Spring MVC\\Controllers REST};
+    \node[box, below=0.9cm of api] (service) {Couche Service\\Interfaces et implémentations};
+    \node[box, below=0.9cm of service] (dao) {Couche DAO\\Spring Data JPA Repositories};
+    \node[db, below=0.9cm of dao] (db) {Base de données H2\\JPA / Hibernate / JDBC};
+
+    \node[box, right=1.6cm of api] (security) {Spring Security\\JWT Filter + rôles};
+
+    \draw[arrow] (angular) -- node[right]{HTTP/JSON} (api);
+    \draw[arrow] (api) -- (service);
+    \draw[arrow] (service) -- (dao);
+    \draw[arrow] (dao) -- (db);
+    \draw[arrow] (security) -- (api);
+\end{tikzpicture}
+\end{center}
+
+\question{6. Diagramme de classes des entités}
+
+Le diagramme suivant représente les entités principales du projet.
+Conformément à la consigne, seules les propriétés sont représentées.
+
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}[
+    entity/.style={draw=mainblue, fill=lightgray, rounded corners, align=left, minimum width=4.6cm},
+    relation/.style={-{Latex[length=2.5mm]}, thick}
+]
+    \node[entity] (vehicule) {
+        \textbf{Vehicule}\\
+        \rule{4.2cm}{0.4pt}\\
+        id : Long\\
+        marque : String\\
+        modele : String\\
+        matricule : String\\
+        prixParJour : double\\
+        dateMiseEnService : Date\\
+        statut : StatutVehicule
+    };
+
+    \node[entity, below left=1.3cm and 1.0cm of vehicule] (voiture) {
+        \textbf{Voiture}\\
+        \rule{4.2cm}{0.4pt}\\
+        nombrePortes : int\\
+        typeCarburant : TypeCarburant\\
+        boiteVitesse : BoiteVitesse
+    };
+
+    \node[entity, below right=1.3cm and 1.0cm of vehicule] (moto) {
+        \textbf{Moto}\\
+        \rule{4.2cm}{0.4pt}\\
+        cylindree : double\\
+        typeMoto : TypeMoto\\
+        casqueInclus : boolean
+    };
+
+    \node[entity, left=2.0cm of vehicule] (agence) {
+        \textbf{Agence}\\
+        \rule{4.2cm}{0.4pt}\\
+        id : Long\\
+        nom : String\\
+        adresse : String\\
+        ville : String\\
+        telephone : String
+    };
+
+    \node[entity, right=2.0cm of vehicule] (location) {
+        \textbf{Location}\\
+        \rule{4.2cm}{0.4pt}\\
+        id : Long\\
+        dateDebut : Date\\
+        dateFin : Date\\
+        montant : double
+    };
+
+    \node[entity, below=3.3cm of vehicule] (appuser) {
+        \textbf{AppUser}\\
+        \rule{4.2cm}{0.4pt}\\
+        id : Long\\
+        username : String\\
+        password : String\\
+        role : String
+    };
+
+    \draw[relation] (voiture) -- node[left]{hérite} (vehicule);
+    \draw[relation] (moto) -- node[right]{hérite} (vehicule);
+    \draw[relation] (agence) -- node[above]{1 agence / plusieurs véhicules} (vehicule);
+    \draw[relation] (vehicule) -- node[above]{1 véhicule / plusieurs locations} (location);
+\end{tikzpicture}
+}
+\end{center}
+
+\section{C. Implémentation}
+
+\question{1. Création du projet Spring Boot}
+
+Le backend est un projet Spring Boot.
+Les informations principales du fichier \code{pom.xml} sont :
+
+\begin{itemize}
+    \item \code{groupId} : \code{org.example}
+    \item \code{artifactId} : \code{gestion-location-backend}
+    \item package de base : \code{org.example.gestionlocationbackend}
+    \item version Java : \code{17}
+\end{itemize}
+
+Les dépendances utilisées sont :
+
+\begin{itemize}
+    \item \code{spring-boot-starter-webmvc} pour les REST Controllers ;
+    \item \code{spring-boot-starter-data-jpa} pour la persistance ;
+    \item \code{h2} pour la base de données en mémoire ;
+    \item \code{springdoc-openapi-starter-webmvc-ui} pour Swagger / OpenAPI ;
+    \item \code{spring-boot-starter-security} pour la sécurité ;
+    \item \code{jjwt-api}, \code{jjwt-impl}, \code{jjwt-jackson} pour JWT ;
+    \item \code{lombok} pour réduire le code répétitif.
+\end{itemize}
+
+\question{2. Couche DAO}
+
+\subsubsection*{a. Entités JPA}
+
+Les entités JPA créées sont :
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{Entité} & \textbf{Description} \\
+\hline
+\code{Agence} & représente une agence avec nom, adresse, ville, téléphone et une liste de véhicules. \\
+\hline
+\code{Vehicule} & classe abstraite représentant les attributs communs aux véhicules. Elle utilise l'héritage JPA \code{SINGLE\_TABLE}. \\
+\hline
+\code{Voiture} & spécialisation de \code{Vehicule}, avec nombre de portes, type de carburant et boîte de vitesse. \\
+\hline
+\code{Moto} & spécialisation de \code{Vehicule}, avec cylindrée, type de moto et casque inclus. \\
+\hline
+\code{Location} & représente l'historique de location d'un véhicule avec dates et montant. \\
+\hline
+\code{AppUser} & représente les utilisateurs de l'application pour l'authentification et les rôles. \\
+\hline
+\end{longtable}
+
+Les énumérations utilisées sont :
+
+\begin{itemize}
+    \item \code{StatutVehicule} : \code{DISPONIBLE}, \code{LOUE}, \code{EN\_MAINTENANCE} ;
+    \item \code{TypeCarburant} : \code{ESSENCE}, \code{DIESEL}, \code{HYBRIDE}, \code{ELECTRIQUE} ;
+    \item \code{BoiteVitesse} : \code{MANUELLE}, \code{AUTOMATIQUE} ;
+    \item \code{TypeMoto} : \code{SPORTIVE}, \code{SCOOTER}, \code{ROADSTER}, \code{TOURING}.
+\end{itemize}
+
+\subsubsection*{b. Repositories Spring Data}
+
+Les repositories basés sur Spring Data JPA sont :
+
+\begin{itemize}
+    \item \code{AgenceRepository extends JpaRepository<Agence, Long>} ;
+    \item \code{VehiculeRepository extends JpaRepository<Vehicule, Long>} ;
+    \item \code{LocationRepository extends JpaRepository<Location, Long>} ;
+    \item \code{AppUserRepository extends JpaRepository<AppUser, Long>}.
+\end{itemize}
+
+\subsubsection*{c. Test et alimentation de la base}
+
+La base de données H2 est configurée dans \code{application.properties} :
+
+\begin{itemize}
+    \item URL : \code{jdbc:h2:mem:vehicule-db}
+    \item console H2 : \code{/h2-console}
+    \item stratégie Hibernate : \code{spring.jpa.hibernate.ddl-auto=create}
+    \item port serveur : \code{8080}
+\end{itemize}
+
+La classe principale \code{GestionLocationBackendApplication} contient un \code{CommandLineRunner} qui insère des données de test :
+
+\begin{itemize}
+    \item une agence : \code{Agence Casablanca} ;
+    \item une voiture : \code{BMW X5} ;
+    \item une moto : \code{Yamaha R1} ;
+    \item trois utilisateurs : \code{client}, \code{employe}, \code{admin}.
+\end{itemize}
+
+La console H2 permet de vérifier directement les tables générées et les données insérées.
+Par exemple, la requête \code{SELECT * FROM VEHICULE} affiche les véhicules de test enregistrés dans la base.
+
+\question{3. Couche service, DTOs et Mappers}
+
+La couche service permet de centraliser la logique métier et d'éviter que les contrôleurs accèdent directement aux repositories.
+Elle contient :
+
+\begin{itemize}
+    \item \code{AgenceService} et \code{AgenceServiceImpl} ;
+    \item \code{VehiculeService} et \code{VehiculeServiceImpl}.
+\end{itemize}
+
+Les DTOs utilisés sont :
+
+\begin{itemize}
+    \item \code{AgenceDTO} ;
+    \item \code{VehiculeDTO} ;
+    \item \code{VoitureDTO} ;
+    \item \code{MotoDTO} ;
+    \item \code{LocationDTO}.
+\end{itemize}
+
+Les classes \code{AgenceMapper} et \code{VehiculeMapper} assurent la conversion entre les entités JPA et les DTOs.
+Cette séparation améliore la maintenabilité du projet et évite d'exposer directement les entités de persistance dans les réponses REST.
+
+Les fonctionnalités métier principales proposées sont :
+
+\begin{itemize}
+    \item lister les véhicules ;
+    \item consulter un véhicule par identifiant ;
+    \item lister les véhicules disponibles ;
+    \item créer une voiture ;
+    \item créer une moto ;
+    \item supprimer un véhicule ;
+    \item lister, consulter, créer et supprimer une agence.
+\end{itemize}
+
+\question{4. Web services REST et Swagger}
+
+La couche Web est basée sur Spring MVC avec des REST Controllers.
+
+\subsubsection*{Contrôleur des véhicules}
+
+Le contrôleur \code{VehiculeRestController} expose les endpoints suivants :
+
+\begin{longtable}{|p{4cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Méthode} & \textbf{URL} & \textbf{Description} \\
+\hline
+\code{GET} & \code{/api/vehicules} & liste tous les véhicules \\
+\hline
+\code{GET} & \code{/api/vehicules/\{id\}} & consulte un véhicule par identifiant \\
+\hline
+\code{GET} & \code{/api/vehicules/disponibles} & liste les véhicules disponibles \\
+\hline
+\code{POST} & \code{/api/vehicules/voitures} & ajoute une voiture \\
+\hline
+\code{POST} & \code{/api/vehicules/motos} & ajoute une moto \\
+\hline
+\code{DELETE} & \code{/api/vehicules/\{id\}} & supprime un véhicule \\
+\hline
+\end{longtable}
+
+\subsubsection*{Contrôleur des agences}
+
+Le contrôleur \code{AgenceRestController} expose les endpoints suivants :
+
+\begin{longtable}{|p{4cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Méthode} & \textbf{URL} & \textbf{Description} \\
+\hline
+\code{GET} & \code{/api/agences} & liste toutes les agences \\
+\hline
+\code{GET} & \code{/api/agences/\{id\}} & consulte une agence par identifiant \\
+\hline
+\code{POST} & \code{/api/agences} & ajoute une agence \\
+\hline
+\code{DELETE} & \code{/api/agences/\{id\}} & supprime une agence \\
+\hline
+\end{longtable}
+
+\subsubsection*{Documentation Swagger / OpenAPI}
+
+La dépendance \code{springdoc-openapi-starter-webmvc-ui} permet de générer automatiquement la documentation des API REST.
+Après le lancement du backend, la documentation est disponible à l'adresse :
+
+\begin{center}
+    \url{http://localhost:8080/swagger-ui/index.html}
+\end{center}
+
+\question{5. Application frontend Angular}
+
+Le frontend est développé avec Angular.
+Il consomme les services REST exposés par le backend.
+
+Les principaux éléments Angular sont :
+
+\begin{itemize}
+    \item \code{Vehicules} : page de liste des véhicules ;
+    \item \code{AddVehicule} : formulaire d'ajout d'une voiture ou d'une moto ;
+    \item \code{Agences} : page réservée à la gestion des agences ;
+    \item \code{Locations} : page réservée à l'historique des locations ;
+    \item \code{Login} : page d'authentification ;
+    \item \code{Navbar} : barre de navigation ;
+    \item \code{VehiculeService} : service Angular de consommation de l'API véhicules ;
+    \item \code{AuthService} : service Angular pour login, logout, stockage du token et récupération du rôle ;
+    \item \code{auth.interceptor.ts} : ajoute le token JWT dans l'en-tête \code{Authorization} ;
+    \item \code{auth.guard.ts} : protège les routes selon l'authentification et le rôle.
+\end{itemize}
+
+Le fichier \code{environment.ts} contient les URLs du backend :
+
+\begin{itemize}
+    \item \code{apiUrl = http://localhost:8080/api/}
+    \item \code{authUrl = http://localhost:8080/auth/}
+\end{itemize}
+
+\subsubsection*{Captures d'écran du frontend}
+
+Les figures suivantes illustrent les principales interfaces réalisées dans l'application Angular.
+Les fichiers images doivent être placés dans le dossier \code{rapport-assets} avec les noms indiqués.
+
+\screenshot{rapport-assets/login-page.png}{0.92}{Page d'authentification de l'application}
+
+\screenshot{rapport-assets/vehicules-admin.png}{0.92}{Liste des véhicules après authentification avec le rôle administrateur}
+
+\screenshot{rapport-assets/add-vehicule.png}{0.92}{Formulaire d'ajout d'un véhicule}
+
+\screenshot{rapport-assets/swagger-api.png}{0.92}{Documentation Swagger / OpenAPI des REST Controllers}
+
+\screenshot{rapport-assets/h2-vehicule-table.png}{0.92}{Console H2 affichant le contenu de la table VEHICULE}
+
+\question{6. Sécurité backend et frontend avec Spring Security et JWT}
+
+La sécurité est basée sur Spring Security et JWT.
+L'authentification est exposée par \code{AuthController}.
+
+\subsubsection*{Endpoints d'authentification}
+
+\begin{longtable}{|p{4cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Méthode} & \textbf{URL} & \textbf{Description} \\
+\hline
+\code{POST} & \code{/auth/login} & authentifie un utilisateur et retourne un token JWT \\
+\hline
+\code{POST} & \code{/auth/register} & crée un utilisateur avec le rôle \code{ROLE\_CLIENT} \\
+\hline
+\end{longtable}
+
+Les mots de passe sont chiffrés avec \code{BCryptPasswordEncoder}.
+Le token JWT contient le username et le rôle de l'utilisateur.
+Le filtre \code{JwtAuthenticationFilter} lit l'en-tête HTTP \code{Authorization: Bearer <token>}, valide le token et place l'utilisateur authentifié dans le contexte Spring Security.
+
+\subsubsection*{Comptes de test}
+
+\begin{longtable}{|p{4cm}|p{4cm}|p{5cm}|}
+\hline
+\textbf{Username} & \textbf{Password} & \textbf{Rôle} \\
+\hline
+\code{client} & \code{client123} & \code{ROLE\_CLIENT} \\
+\hline
+\code{employe} & \code{employe123} & \code{ROLE\_EMPLOYE} \\
+\hline
+\code{admin} & \code{admin123} & \code{ROLE\_ADMIN} \\
+\hline
+\end{longtable}
+
+\subsubsection*{Autorisations choisies}
+
+Les autorisations sont configurées dans \code{SecurityConfig}.
+
+\begin{longtable}{|p{4cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Rôle} & \textbf{Droits principaux} & \textbf{Justification} \\
+\hline
+\code{ROLE\_CLIENT} & consulter les véhicules et les agences & un client peut chercher un véhicule disponible et consulter les informations des agences. \\
+\hline
+\code{ROLE\_EMPLOYE} & consulter et créer des véhicules/agences, accéder aux locations & un employé gère les opérations courantes de location et de saisie. \\
+\hline
+\code{ROLE\_ADMIN} & tous les droits, y compris suppression & l'administrateur gère complètement l'application. \\
+\hline
+\end{longtable}
+
+Les règles principales sont :
+
+\begin{itemize}
+    \item \code{/auth/**}, \code{/swagger-ui/**}, \code{/v3/api-docs/**} et \code{/h2-console/**} sont publics ;
+    \item \code{GET /api/vehicules/**} et \code{GET /api/agences/**} sont accessibles aux trois rôles ;
+    \item \code{POST /api/vehicules/**} et \code{POST /api/agences/**} sont accessibles à \code{ROLE\_EMPLOYE} et \code{ROLE\_ADMIN} ;
+    \item \code{DELETE /api/vehicules/**} et \code{DELETE /api/agences/**} sont réservés à \code{ROLE\_ADMIN}.
+\end{itemize}
+
+Côté Angular, la sécurité est renforcée par :
+
+\begin{itemize}
+    \item une page \code{Login} ;
+    \item le stockage du token JWT dans \code{localStorage} ;
+    \item un interceptor HTTP qui ajoute automatiquement le token aux appels API ;
+    \item un guard de routes qui interdit l'accès aux pages non autorisées ;
+    \item l'affichage conditionnel des boutons selon le rôle : par exemple, seul l'admin peut voir le bouton de suppression.
+\end{itemize}
+
+\subsubsection*{Code ajouté pour la sécurité JWT}
+
+Le projet contient une implémentation complète de la sécurité JWT.
+Les extraits suivants présentent les principaux éléments ajoutés.
+
+\paragraph{Génération et lecture du token JWT}
+
+La classe \code{JwtUtil} génère le token à partir du username et du rôle, puis permet de relire les claims pendant les requêtes protégées.
+
+\begin{lstlisting}[language=Java]
+public static String generateToken(String username, String role) {
+    return Jwts.builder()
+            .setSubject(username)
+            .claim("role", normalizeRole(role))
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+            .signWith(KEY, SignatureAlgorithm.HS256)
+            .compact();
+}
+
+public static String getRole(String token) {
+    return normalizeRole(getClaims(token).get("role", String.class));
+}
+\end{lstlisting}
+
+\paragraph{Filtre JWT}
+
+Le filtre \code{JwtAuthenticationFilter} intercepte les appels HTTP, récupère le bearer token et place l'utilisateur authentifié dans le contexte de sécurité.
+
+\begin{lstlisting}[language=Java]
+String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+    String token = authorizationHeader.substring(7);
+    String username = JwtUtil.getUsername(token);
+    String role = JwtUtil.getRole(token);
+
+    UsernamePasswordAuthenticationToken authentication =
+            new UsernamePasswordAuthenticationToken(
+                    username,
+                    null,
+                    List.of(new SimpleGrantedAuthority(role))
+            );
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+}
+\end{lstlisting}
+
+\paragraph{Configuration des autorisations}
+
+La classe \code{SecurityConfig} définit les autorisations par rôle.
+
+\begin{lstlisting}[language=Java]
+.requestMatchers(HttpMethod.GET, "/api/vehicules/**")
+    .hasAnyRole("CLIENT", "EMPLOYE", "ADMIN")
+
+.requestMatchers(HttpMethod.POST, "/api/vehicules/**")
+    .hasAnyRole("EMPLOYE", "ADMIN")
+
+.requestMatchers(HttpMethod.DELETE, "/api/vehicules/**")
+    .hasRole("ADMIN")
+
+.addFilterBefore(jwtAuthenticationFilter,
+        UsernamePasswordAuthenticationFilter.class);
+\end{lstlisting}
+
+\paragraph{Authentification REST}
+
+Le contrôleur \code{AuthController} vérifie le mot de passe avec BCrypt et retourne une réponse contenant le token JWT.
+
+\begin{lstlisting}[language=Java]
+if (!passwordEncoder.matches(request.password(), appUser.getPassword())) {
+    throw new ResponseStatusException(
+            HttpStatus.UNAUTHORIZED,
+            "Bad credentials"
+    );
+}
+
+return new AuthResponse(
+        appUser.getId(),
+        appUser.getUsername(),
+        role,
+        JwtUtil.generateToken(appUser.getUsername(), role)
+);
+\end{lstlisting}
+
+\subsubsection*{Code ajouté côté Angular}
+
+Côté frontend, le service \code{AuthService} gère la session utilisateur.
+
+\begin{lstlisting}[language=JavaScript]
+login(request: LoginRequest): Observable<AuthResponse> {
+  return this.http
+    .post<AuthResponse>(`${environment.authUrl}login`, request)
+    .pipe(tap((response) => this.saveSession(response)));
+}
+
+private saveSession(response: AuthResponse): void {
+  localStorage.setItem(this.tokenKey, response.token);
+  localStorage.setItem(this.usernameKey, response.username);
+  localStorage.setItem(this.roleKey, response.role);
+}
+\end{lstlisting}
+
+L'intercepteur Angular ajoute le token JWT à toutes les requêtes HTTP vers le backend.
+
+\begin{lstlisting}[language=JavaScript]
+export const authInterceptor: HttpInterceptorFn = (request, next) => {
+  const token = inject(AuthService).getToken();
+
+  if (token === null) {
+    return next(request);
+  }
+
+  return next(request.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+  }));
+};
+\end{lstlisting}
+
+Le guard protège les routes Angular en fonction de l'authentification et du rôle.
+
+\begin{lstlisting}[language=JavaScript]
+if (!authService.isAuthenticated()) {
+  return router.createUrlTree(['/login'], {
+    queryParams: { returnUrl: state.url },
+  });
+}
+
+if (allowedRoles.length > 0
+    && !authService.hasAnyRole(allowedRoles)) {
+  return router.createUrlTree(['/vehicules']);
+}
+\end{lstlisting}
+
+\question{7. Améliorations additionnelles}
+
+Plusieurs améliorations ont été ajoutées ou prévues dans le projet :
+
+\begin{itemize}
+    \item documentation automatique de l'API avec Swagger / OpenAPI ;
+    \item utilisation de DTOs et de mappers pour améliorer la séparation entre API et persistance ;
+    \item utilisation d'énumérations pour les statuts, carburants, types de moto et boîtes de vitesse ;
+    \item configuration CORS pour permettre la communication entre Angular et Spring Boot ;
+    \item authentification JWT sans session côté serveur ;
+    \item gestion des rôles côté backend et côté frontend ;
+    \item données de test chargées automatiquement avec \code{CommandLineRunner} ;
+    \item console H2 disponible pendant le développement ;
+    \item structure du projet préparée pour ajouter facilement la gestion complète des locations.
+\end{itemize}
+
+\section{Conclusion}
+
+Le projet réalisé répond aux besoins principaux de l'application de gestion de location de véhicules.
+Il met en place une architecture distribuée classique avec un backend Spring Boot sécurisé et un frontend Angular.
+La solution permet de gérer les véhicules, les agences, les utilisateurs et les droits d'accès selon trois rôles.
+L'utilisation de Spring Data JPA, DTOs, mappers, REST Controllers, Swagger, Angular Guards et JWT donne une base claire, maintenable et extensible pour la suite du projet.
+
+\end{document}

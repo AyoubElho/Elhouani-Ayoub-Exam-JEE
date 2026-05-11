@@ -4,13 +4,14 @@ import { HttpClient } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 import { Vehicule } from '../entity/Vehicule';
+import { environment } from '../../environments/environment';
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehiculeService {
-  apiUrl = 'vehicules';
+  apiUrl = environment.apiUrl+'vehicules';
 
   constructor(private http: HttpClient) {}
 

@@ -1,0 +1,222 @@
+<div class="container mt-4">
+
+  <h2>Add Vehicule</h2>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="saveVehicule()">
+
+    <!-- TYPE VEHICULE -->
+
+    <div class="mb-3">
+
+      <label class="form-label">
+
+        Type Vehicule
+
+      </label>
+
+      <select
+        class="form-select"
+        formControlName="typeVehicule">
+
+        <option value="VOITURE">
+          Voiture
+        </option>
+
+        <option value="MOTO">
+          Moto
+        </option>
+
+      </select>
+
+    </div>
+
+    <!-- MARQUE -->
+
+    <div class="mb-3">
+
+      <label class="form-label">
+
+        Marque
+
+      </label>
+
+      <input
+        type="text"
+        class="form-control"
+        formControlName="marque">
+
+    </div>
+
+    <!-- MODELE -->
+
+    <div class="mb-3">
+
+      <label class="form-label">
+
+        Modele
+
+      </label>
+
+      <input
+        type="text"
+        class="form-control"
+        formControlName="modele">
+
+    </div>
+
+    <!-- MATRICULE -->
+
+    <div class="mb-3">
+
+      <label class="form-label">
+
+        Matricule
+
+      </label>
+
+      <input
+        type="text"
+        class="form-control"
+        formControlName="matricule">
+
+    </div>
+
+    <!-- PRIX -->
+
+    <div class="mb-3">
+
+      <label class="form-label">
+
+        Prix
+
+      </label>
+
+      <input
+        type="number"
+        class="form-control"
+        formControlName="prixParJour">
+
+    </div>
+
+    <!-- VOITURE FIELDS -->
+
+    <div
+      *ngIf="
+      form.get('typeVehicule')
+      ?.value == 'VOITURE'
+      ">
+
+      <div class="mb-3">
+
+        <label class="form-label">
+
+          Nombre Portes
+
+        </label>
+
+        <input
+          type="number"
+          class="form-control"
+          formControlName="nombrePortes">
+
+      </div>
+
+      <div class="mb-3">
+
+        <label class="form-label">
+
+          Type Carburant
+
+        </label>
+
+        <select
+          class="form-select"
+          formControlName="typeCarburant">
+
+          <option value="ESSENCE">
+            Essence
+          </option>
+
+          <option value="DIESEL">
+            Diesel
+          </option>
+
+          <option value="HYBRIDE">
+            Hybride
+          </option>
+
+          <option value="ELECTRIQUE">
+            Electrique
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+    <!-- MOTO FIELDS -->
+
+    <div
+      *ngIf="
+      form.get('typeVehicule')
+      ?.value == 'MOTO'
+      ">
+
+      <div class="mb-3">
+
+        <label class="form-label">
+
+          Cylindree
+
+        </label>
+
+        <input
+          type="number"
+          class="form-control"
+          formControlName="cylindree">
+
+      </div>
+
+      <div class="mb-3">
+
+        <label class="form-label">
+
+          Type Moto
+
+        </label>
+
+        <select
+          class="form-select"
+          formControlName="typeMoto">
+
+          <option value="SPORTIVE">
+            Sportive
+          </option>
+
+          <option value="SCOOTER">
+            Scooter
+          </option>
+
+          <option value="ROADSTER">
+            Roadster
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+    <button
+      class="btn btn-success">
+
+      Save
+
+    </button>
+
+  </form>
+
+</div>

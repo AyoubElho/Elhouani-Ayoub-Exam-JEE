@@ -1,6 +1,7 @@
 package org.example.gestionlocationbackend;
 
 import org.example.gestionlocationbackend.entity.Agence;
+import org.example.gestionlocationbackend.entity.AppUser;
 import org.example.gestionlocationbackend.entity.Moto;
 import org.example.gestionlocationbackend.entity.Voiture;
 import org.example.gestionlocationbackend.enumeartion.BoiteVitesse;
@@ -8,11 +9,13 @@ import org.example.gestionlocationbackend.enumeartion.StatutVehicule;
 import org.example.gestionlocationbackend.enumeartion.TypeCarburant;
 import org.example.gestionlocationbackend.enumeartion.TypeMoto;
 import org.example.gestionlocationbackend.repository.AgenceRepository;
+import org.example.gestionlocationbackend.repository.AppUserRepository;
 import org.example.gestionlocationbackend.repository.VehiculeRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
 
@@ -26,7 +29,9 @@ public class GestionLocationBackendApplication {
     @Bean
     CommandLineRunner start(
             AgenceRepository agenceRepository,
-            VehiculeRepository vehiculeRepository
+            VehiculeRepository vehiculeRepository,
+            AppUserRepository appUserRepository,
+            PasswordEncoder passwordEncoder
     ) {
 
         return args -> {
@@ -74,8 +79,56 @@ public class GestionLocationBackendApplication {
 
             vehiculeRepository.save(moto);
 
+            createUserIfNotExists(
+                    appUserRepository,
+                    passwordEncoder,
+                    "client",
+                    "client123",
+                    "ROLE_CLIENT"
+            );
+
+            createUserIfNotExists(
+                    appUserRepository,
+                    passwordEncoder,
+                    "employe",
+                    "employe123",
+                    "ROLE_EMPLOYE"
+            );
+
+            createUserIfNotExists(
+                    appUserRepository,
+                    passwordEncoder,
+                    "admin",
+                    "admin123",
+                    "ROLE_ADMIN"
+            );
+
             System.out.println("Data Loaded Successfully");
         };
     }
-}
 
+    private void createUserIfNotExists(
+            AppUserRepository appUserRepository,
+            PasswordEncoder passwordEncoder,
+            String username,
+            String password,
+            String role
+    ){
+
+        appUserRepository
+                .findByUsername(username)
+                .orElseGet(() ->
+                        appUserRepository.save(
+                                AppUser.builder()
+                                        .username(username)
+                                        .password(
+                                                passwordEncoder.encode(
+                                                        password
+                                                )
+                                        )
+                                        .role(role)
+                                        .build()
+                        )
+                );
+    }
+}

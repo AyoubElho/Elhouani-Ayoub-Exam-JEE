@@ -1,10 +1,22 @@
 <div class="container mt-4">
 
-  <h2>Liste des Véhicules</h2>
+  <div class="d-flex justify-content-between mb-3">
 
-  <table class="table table-bordered">
+    <h2>Liste des Véhicules</h2>
 
-    <thead>
+    <button
+      *ngIf="canCreateVehicule()"
+      class="btn btn-primary"
+      routerLink="/add-vehicule">
+
+      Add Vehicule
+
+    </button>
+  </div>
+
+  <table class="table table-bordered table-hover">
+
+    <thead class="table-dark">
 
     <tr>
       <th>ID</th>
@@ -13,40 +25,40 @@
       <th>Prix</th>
       <th>Statut</th>
       <th>Type</th>
-      <th>Action</th>
+      <th *ngIf="canDeleteVehicule()">Action</th>
     </tr>
 
     </thead>
 
     <tbody>
+      @for (v of vehicules; track v.marque) {
+        <tr>
+          <td>{{ v.id }}</td>
 
-    <tr *ngFor="let v of vehicules">
+          <td>{{ v.marque }}</td>
 
-      <td>{{v.id}}</td>
+          <td>{{ v.modele }}</td>
 
-      <td>{{v.marque}}</td>
+          <td>{{ v.prixParJour }}</td>
 
-      <td>{{v.modele}}</td>
+          <td>{{ v.statut }}</td>
 
-      <td>{{v.prixParJour}}</td>
+          <td>{{ v.typeVehicule }}</td>
 
-      <td>{{v.statut}}</td>
+          <td *ngIf="canDeleteVehicule()">
 
-      <td>{{v.typeVehicule}}</td>
+            <button
+              class="btn btn-danger btn-sm"
+              (click)="deleteVehicule(v.id)">
 
-      <td>
+              Delete
 
-        <button
-          class="btn btn-danger"
-          (click)="deleteVehicule(v.id)">
+            </button>
 
-          Delete
+          </td>
+        </tr>
+      }
 
-        </button>
-
-      </td>
-
-    </tr>
 
     </tbody>
 
