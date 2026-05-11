@@ -1,8 +1,9 @@
 package org.example.gestionlocationbackend.web;
 
-import lombok.RequiredArgsConstructor;
+import org.example.gestionlocationbackend.dtos.MotoDTO;
 import org.example.gestionlocationbackend.dtos.VehiculeDTO;
-import org.example.gestionlocationbackend.service.VehiculeService;
+import org.example.gestionlocationbackend.dtos.VoitureDTO;
+import org.example.gestionlocationbackend.service.vehiculeServ.VehiculeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,14 +16,31 @@ public class VehiculeRestController {
     @Autowired
     private VehiculeService vehiculeService;
 
-    // GET ALL
     @GetMapping
     public List<VehiculeDTO> getVehicules() {
 
         return vehiculeService.getAllVehicules();
     }
 
-    // GET BY ID
+    @PostMapping("/voitures")
+    public VoitureDTO saveVoiture(
+            @RequestBody VoitureDTO dto
+    ){
+
+        return vehiculeService
+                .saveVoiture(dto);
+    }
+
+    @PostMapping("/motos")
+    public MotoDTO saveMoto(
+            @RequestBody MotoDTO dto
+    ){
+
+        return vehiculeService
+                .saveMoto(dto);
+    }
+
+
     @GetMapping("/{id}")
     public VehiculeDTO getVehicule(
             @PathVariable Long id
@@ -31,7 +49,6 @@ public class VehiculeRestController {
         return vehiculeService.getVehiculeById(id);
     }
 
-    // GET DISPONIBLES
     @GetMapping("/disponibles")
     public List<VehiculeDTO>
     getVehiculesDisponibles() {
@@ -40,7 +57,6 @@ public class VehiculeRestController {
                 .getVehiculesDisponibles();
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public void deleteVehicule(
             @PathVariable Long id
