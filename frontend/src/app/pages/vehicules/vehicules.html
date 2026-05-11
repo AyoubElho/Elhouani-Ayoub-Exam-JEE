@@ -1,0 +1,55 @@
+<div class="container mt-4">
+
+  <h2>Liste des Véhicules</h2>
+
+  <table class="table table-bordered">
+
+    <thead>
+
+    <tr>
+      <th>ID</th>
+      <th>Marque</th>
+      <th>Modele</th>
+      <th>Prix</th>
+      <th>Statut</th>
+      <th>Type</th>
+      <th>Action</th>
+    </tr>
+
+    </thead>
+
+    <tbody>
+
+    <tr *ngFor="let v of vehicules">
+
+      <td>{{v.id}}</td>
+
+      <td>{{v.marque}}</td>
+
+      <td>{{v.modele}}</td>
+
+      <td>{{v.prixParJour}}</td>
+
+      <td>{{v.statut}}</td>
+
+      <td>{{v.typeVehicule}}</td>
+
+      <td>
+
+        <button
+          class="btn btn-danger"
+          (click)="deleteVehicule(v.id)">
+
+          Delete
+
+        </button>
+
+      </td>
+
+    </tr>
+
+    </tbody>
+
+  </table>
+
+</div>
